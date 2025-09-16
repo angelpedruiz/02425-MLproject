@@ -1,0 +1,28 @@
+
+
+1. DESCRIPTION OF DATA SET
+
+  - interest
+  - reference
+  - SUMMARIZE PREV ANALYSIS
+
+  - explain context and OBJECTIVE
+  - REGRESSION OBJ: P/E
+  - CLASSIFICATION OBJ: P/E binary classification
+  - explain data preprocessing
+
+2. DETAIL EXPLANATION OF ATTRIBUTES
+
+  - discrete/continuous; nominal...
+  - data issues (Nan etc)
+  - summary statistics of attributes
+
+3. DATA VISUALIZATION (POS MANIPULATION)
+  
+  - individual attribute distribution
+  - PCA
+  
+4. CONCLUSION
+
+
+
