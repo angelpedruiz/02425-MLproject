@@ -76,15 +76,50 @@ plt.title("PC2 Principal Component Loadings")
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "PC2_loadings.png"))
 
-# Scatter plot
-pc1_vals = X_pca[:, 0]
-pc2_vals = X_pca[:, 1]
-plt.figure(figsize=(6,5))
-scatter = plt.scatter(pc1_vals, pc2_vals, c=target, cmap='viridis', alpha=0.7)
-plt.colorbar(scatter, label='Log(P/E)')
-plt.xlabel("Principal Component 1")
-plt.ylabel("Principal Component 2")
-plt.title("Data projected onto first 2 principal components")
+pc3_load = pd.Series(pca.components_[2], index=features)
+pc3_order =  pc3_load.abs().sort_values(ascending=False).index
+plt.figure(figsize=(6,4))
+sns.barplot(x=pc3_load[pc3_order], y=pc3_order, orient='h', color='cornflowerblue')
+plt.xlabel("Loading (PC3)")
+plt.title("PC3 Principal Component Loadings")
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "pca_scatter.png"))
-plt.close()
+plt.savefig(os.path.join(output_dir, "PC3_loadings.png"))
+
+pc4_load = pd.Series(pca.components_[3], index=features)
+pc4_order =  pc4_load.abs().sort_values(ascending=False).index
+plt.figure(figsize=(6,4))
+sns.barplot(x=pc4_load[pc4_order], y=pc4_order, orient='h', color='cornflowerblue')
+plt.xlabel("Loading (PC4)")
+plt.title("PC4 Principal Component Loadings")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "PC4_loadings.png"))
+
+# 2D Scatter plots
+pairs = [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
+pc_vals = [X_pca[:,i] for i in range(4)]
+for i,j in pairs:
+    plt.figure(figsize=(6,5))
+    scatter = plt.scatter(pc_vals[i], pc_vals[j], c=target, cmap='viridis', alpha=0.7)
+    plt.colorbar(scatter, label='Log(P/E)')
+    plt.xlabel(f"PC{i+1}")
+    plt.ylabel(f"PC{j+1}")
+    plt.title(f"Scatter: PC{i+1} vs PC{j+1}")
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f"scatter_pc{i+1}_pc{j+1}.png"))
+    plt.close()
+
+# 3D Scatter plots
+triples = [(0,1,2), (0,1,3), (0,2,3), (1,2,3)]
+from mpl_toolkits.mplot3d import Axes3D 
+for i,j,k in triples:
+    fig = plt.figure(figsize=(7,6))
+    ax = fig.add_subplot(111, projection='3d')
+    p = ax.scatter(pc_vals[i], pc_vals[j], pc_vals[k], c=target, cmap='viridis', alpha=0.7)
+    ax.set_xlabel(f"PC{i+1}")
+    ax.set_ylabel(f"PC{j+1}")
+    ax.set_zlabel(f"PC{k+1}")
+    ax.set_title(f"3D Scatter: PC{i+1}, PC{j+1}, PC{k+1}")
+    fig.colorbar(p, ax=ax, label="Log(P/E)")
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f"scatter_pc{i+1}_pc{j+1}_pc{k+1}.png"))
+    plt.close()

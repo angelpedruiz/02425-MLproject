@@ -1,6 +1,5 @@
 # Data exploration of S&P 500 financial metrics
 
-<<<<<<< HEAD
 # %%
 import pandas as pd
 import seaborn as sns
@@ -112,6 +111,4 @@ print("Kurtosis:\n", kurtosis)
 print("Skewness:\n", skewness)
 
 # %%
-=======
 
->>>>>>> 59ef86d (Primera sesion)
