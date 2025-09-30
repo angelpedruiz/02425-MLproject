@@ -1,6 +1,5 @@
 # Data exploration of S&P 500 financial metrics
 
-<<<<<<< HEAD
 # %%
 import pandas as pd
 import seaborn as sns
@@ -111,7 +110,129 @@ skewness = df_cleaned[continuous_vars].skew()
 print("Kurtosis:\n", kurtosis)
 print("Skewness:\n", skewness)
 
-# %%
-=======
 
->>>>>>> 59ef86d (Primera sesion)
+# %% Outliers detection using IQR method
+
+outlier_summary = {}
+
+for col in continuous_vars:
+    Q1 = df_cleaned[col].quantile(0.25)
+    Q3 = df_cleaned[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_fence = Q1 - 1.5 * IQR
+    upper_fence = Q3 + 1.5 * IQR
+    
+    # Identify outliers
+    outliers = df_cleaned[(df_cleaned[col] < lower_fence) | (df_cleaned[col] > upper_fence)]
+    
+    outlier_summary[col] = {
+        "Q1": Q1,
+        "Q3": Q3,
+        "IQR": IQR,
+        "Lower Fence": lower_fence,
+        "Upper Fence": upper_fence,
+        "Num Outliers": len(outliers),
+        "Pct Outliers": round(100 * len(outliers) / len(df_cleaned), 2)
+    }
+
+# Convert to DataFrame for a nice view
+outlier_df = pd.DataFrame(outlier_summary).T
+print("\nOutlier Summary (IQR method):\n", outlier_df)
+
+# %% Optional: visualize a few distributions with boxplots
+for col in ["Price", "Price/Earnings", "Price/Book", "Market Cap", "EBITDA"]:
+    plt.figure(figsize=(8, 4))
+    sns.boxplot(x=df_cleaned[col])
+    plt.title(f"Boxplot of {col} (with outliers)")
+    plt.show()
+# %% Log-transform skewed variables (log1p handles zeros safely)
+log_transformed = df_cleaned.copy()
+
+skewed_cols = ["Price", "Price/Earnings", "Price/Book", "Market Cap", "EBITDA", "Price/Sales"]
+
+for col in skewed_cols:
+    # Only apply if column has positive values
+    # log1p = log(1 + x), avoids issues with 0 values
+    log_transformed[f"log_{col}"] = np.log1p(log_transformed[col].clip(lower=0))
+
+# Check new skewness after log transform
+log_vars = [f"log_{col}" for col in skewed_cols]
+print("Skewness after log-transform:\n", log_transformed[log_vars].skew())
+print("Kurtosis after log-transform:\n", log_transformed[log_vars].kurtosis())
+
+
+# %% Outlier detection on log-transformed data
+outlier_summary_log = {}
+
+for col in log_vars:
+    Q1 = log_transformed[col].quantile(0.25)
+    Q3 = log_transformed[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_fence = Q1 - 1.5 * IQR
+    upper_fence = Q3 + 1.5 * IQR
+
+    outliers = log_transformed[(log_transformed[col] < lower_fence) | (log_transformed[col] > upper_fence)]
+
+    outlier_summary_log[col] = {
+        "Q1": Q1,
+        "Q3": Q3,
+        "IQR": IQR,
+        "Lower Fence": lower_fence,
+        "Upper Fence": upper_fence,
+        "Num Outliers": len(outliers),
+        "Pct Outliers": round(100 * len(outliers) / len(log_transformed), 2)
+    }
+
+outlier_df_log = pd.DataFrame(outlier_summary_log).T
+print("\nOutlier Summary on Log-transformed data (IQR method):\n", outlier_df_log)
+
+
+# %% Compare distributions before vs after log-transform
+
+cols_to_compare = ["Price", "Price/Earnings", "Price/Book", "Market Cap", "EBITDA", "Price/Sales"]
+
+for col in cols_to_compare:
+    plt.figure(figsize=(12, 4))
+
+    # Raw distribution
+    plt.subplot(1, 2, 1)
+    sns.histplot(df_cleaned[col], bins=50, kde=True)
+    plt.title(f"Raw {col} Distribution")
+
+    # Log distribution
+    plt.subplot(1, 2, 2)
+    sns.histplot(log_transformed[f"log_{col}"], bins=50, kde=True, color="orange")
+    plt.title(f"Log-transformed {col} Distribution")
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+# %% Save the log-transformed dataset
+log_transformed.to_csv("../data/financials_log_transformed.csv", index=False)
+
+# Optional: reload to check
+df_transformed = pd.read_csv("../data/financials_log_transformed.csv")
+print(df_transformed.head())
+
+# List of skewed columns you want to log-transform
+skewed_cols = ["Price", "Price/Earnings", "Price/Book", "Market Cap", "EBITDA", "Price/Sales"]
+
+# Make a copy for transformation
+df_transformed = df_cleaned.copy()
+
+# Apply log1p (handles zeros) and REPLACE the original columns
+for col in skewed_cols:
+    df_transformed[col] = np.log1p(df_transformed[col].clip(lower=0))
+
+# Check skewness and kurtosis again
+print("Skewness after replacement:\n", df_transformed[skewed_cols].skew())
+print("Kurtosis after replacement:\n", df_transformed[skewed_cols].kurtosis())
+
+# Save the cleaned + log-transformed dataset
+df_transformed.to_csv("../data/financials_log_transformed.csv", index=False)
+print("Saved dataset with log-transformed columns replacing originals.")
+
+
+# %%
