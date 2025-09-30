@@ -11,19 +11,18 @@ data = pd.read_csv(os.path.join(script_dir, "..", "data", "financials_log_transf
 output_dir = os.path.join(script_dir, "..", "results", "statistical_analysis_transformed")
 os.makedirs(output_dir, exist_ok=True)
 
-# Define which columns were log-transformed
-log_transformed_cols = ["Price", "Price/Earnings", "Market Cap", "EBITDA", "Price/Sales", "Price/Book"]
-
+# Define which columns were sign log transformed (ALL continuous variables)
 cols = ["Price", "Price/Earnings", "Dividend Yield", "Earnings/Share", "52 Week Low",
         "52 Week High", "Market Cap", "EBITDA", "Price/Sales", "Price/Book"]
+log_transformed_cols = cols  # All continuous attributes are sign log normalized
 
 # Histograms + Boxplots by attribute
 for col in cols:
     fig, axes = plt.subplots(1, 2, figsize=(10,4))
 
-    # Check if column was log-transformed
-    label = f"log({col})" if col in log_transformed_cols else col
-    title_suffix = " (log-transformed)" if col in log_transformed_cols else ""
+    # All columns are sign log transformed
+    label = f"sign_log({col})"
+    title_suffix = " (sign log-transformed)"
 
     sns.histplot(data[col].dropna(), kde=False, bins=30, color='skyblue', ax=axes[0])
     axes[0].set_title(f"Histogram of {col}{title_suffix}")
@@ -39,35 +38,27 @@ for col in cols:
     plt.savefig(os.path.join(output_dir, figure))
     plt.close()
 
-# P/E distribution (already log-transformed in the data)
-pe_positive = data[data["Price/Earnings"] > 0]["Price/Earnings"]
+# P/E distribution (already sign log-transformed in the data)
+pe_data = data["Price/Earnings"].dropna()
 
 plt.figure(figsize=(5,3))
-sns.histplot(pe_positive, kde=True, bins=30, color='orange')
-plt.title("Distribution of P/E (log-transformed, positive only)")
-plt.xlabel("log(P/E) ratio")
+sns.histplot(pe_data, kde=True, bins=30, color='orange')
+plt.title("Distribution of P/E (sign log-transformed)")
+plt.xlabel("sign_log(P/E) ratio")
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "pe_hist.png"))
-plt.close()
-
-plt.figure(figsize=(5,3))
-sns.histplot(np.log(pe_positive), kde=True, bins=30, color='orange')
-plt.title("Distribution of log(log(P/E)) (positive only)")
-plt.xlabel("log(log(P/E)) ratio")
-plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "log_pe_hist.png"))
 plt.close()
 
 # Correlation analysis
 plt.figure(figsize=(10,8))
 corr_matrix = data[cols].corr(method='pearson')
 
-# Create labels with log notation where applicable
-tick_labels = [f"log({col})" if col in log_transformed_cols else col for col in cols]
+# Create labels with sign_log notation (all continuous variables are transformed)
+tick_labels = [f"sign_log({col})" for col in cols]
 
 sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="coolwarm", xticklabels=tick_labels,
             yticklabels=tick_labels)
-plt.title("Correlation Heatmap of Financial Attributes (log-transformed)")
+plt.title("Correlation Heatmap of Financial Attributes (sign log-transformed)")
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "correlation_heatmap.png"))
 plt.close()
